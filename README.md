@@ -26,6 +26,7 @@ Welcome to everything software related at Astro Robotics!
 ## Wayfinding tasks
 - Obstacle detection with ultrasonic sensor.
 - Creating a live map of obstacles and planning a route around them. <-- pure CS, no roadblocks
+    - http://www.cs.columbia.edu/~allen/F17/NOTES/lozanogrown.pdf
 - Giving motor control instructions based on the planned route.
 
 ## Unknowns 
