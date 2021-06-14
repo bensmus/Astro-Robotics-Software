@@ -58,6 +58,24 @@ def get_line_pts(a, b, horiz):
     return pts
 
 
+def not_in_rect(rect):
+    """
+    rect isn't a pygame rect here, just [(top, left) (height, width)]
+    return a function that takes in a point, and checks if its contained
+    """
+    def f(point):
+        y = point[0]
+        x = point[1]
+        miny = rect[0][0]
+        minx = rect[0][1]
+        maxy = miny + rect[1][0]
+        maxx = minx + rect[1][1]
+        if y > miny and y < maxy and x > minx and x < maxx:
+            return False
+        return True
+    return f
+
+
 # Defining constants
 WORLDSIZE = 1000
 BLACK = (0, 0, 0)
@@ -68,7 +86,7 @@ MAX_BOUNDING = 100
 MIN_BOUNDING = 10
 # max top or left for a bounding rectangle
 MAX_COOR = WORLDSIZE - MAX_BOUNDING
-OBSTACLE_COUNT = 20
+OBSTACLE_COUNT = 50
 
 # Set up the drawing window.
 screen = pygame.display.set_mode([WORLDSIZE, WORLDSIZE])
@@ -99,8 +117,12 @@ if __name__ == '__main__':
         pygame.draw.rect(screen, BLACK, pygame.Rect(topleft, dim))
         topleft_dim.append([topleft, dim])
         bound_pts = get_bound_pts(topleft, dim)
+
+        # Filter the bound points. If they are inside another topleft_dim, they are not acceptable.
+        for rect in topleft_dim:
+            bound_pts = filter(not_in_rect(rect), bound_pts)
         bound_pts_groups.append(bound_pts)
-        
+
         # blit these bound_pts as a test
         for pt in bound_pts:
             pygame.draw.line(screen, RED, pt, pt)
