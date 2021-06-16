@@ -1,5 +1,5 @@
 '''
-Coordinate system is (y, x),    y       x --->
+Coordinate system is (x, y),    y       x --->
                                 |
                                 |
                                 |
@@ -16,22 +16,34 @@ OBSTACLE CREATION TECHNIQUE
 # Version 1 simplifies this obstacle creation technique, to have all obstacles be rectangles.
 
 import pygame
-import numpy.linalg as lin
-import numpy as np
 import random
 pygame.init()
 
 
-def get_bound_pts(topleft, dim):
-    """Interpolate"""
-    top = topleft[0]
-    left = topleft[1]
-    height = dim[0]
-    width = dim[1]
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 
-    topright = (top, left + width)
-    bottomleft = (top + height, left)
-    bottomright = (top + height, left + width)
+    def raw(self):
+        return (self.x, self.y)
+
+
+class Rectangle:
+    def __init__(self, topleft, width, height):
+        self.topleft = topleft
+        self.width = width
+        self.height = height
+
+
+def get_bound_pts(topleft, width, height):
+    """
+    Get the points on the edge of the rectangle.
+    """
+
+    topright = Point(topleft.x + width, topleft.y)
+    bottomleft = Point(topleft.x, topleft.y + height)
+    bottomright = Point(topleft.x + width, topleft.y + height)
 
     bound_pts = []
     bound_pts.extend((topleft, topright, bottomleft, bottomright))
@@ -43,40 +55,37 @@ def get_bound_pts(topleft, dim):
     return bound_pts
 
 
-def get_line_pts(a, b, horiz):
+def get_line_pts(point_a, point_b, horiz):
     """
     Interpolate, do not include a or b
-    b needs to be more positive than a for this to work
+    b needs to be more positive than a for this to work.
     """
     pts = []
     if horiz:
-        for xcoor in range(a[1] + 1, b[1]):
-            pts.append((a[0], xcoor))
+        for xcoor in range(point_a.x + 1, point_b.x):
+            pts.append(Point(xcoor, point_a.y))
     else:
-        for ycoor in range(a[0] + 1, b[0]):
-            pts.append((ycoor, a[1]))
+        for ycoor in range(point_a.y + 1, point_b.y):
+            pts.append(Point(point_a.x, ycoor))
     return pts
 
 
-def not_in_rect(rect):
+def not_in_rect(topleft, width, height):
     """
-    rect isn't a pygame rect here, just [(top, left) (height, width)]
-    return a function that takes in a point, and checks if its contained
+    Return a function that takes in a point, and checks if its contained within a rectangle.
     """
     def f(point):
-        y = point[0]
-        x = point[1]
-        miny = rect[0][0]
-        minx = rect[0][1]
-        maxy = miny + rect[1][0]
-        maxx = minx + rect[1][1]
-        if y > miny and y < maxy and x > minx and x < maxx:
+        min_x = topleft.x
+        min_y = topleft.y
+        max_x = min_x + width
+        max_y = min_y + height
+        if point.y > min_y and point.y < max_y and point.x > min_x and point.x < max_x:
             return False
         return True
     return f
 
 
-# Defining constants
+# Defining constants.
 WORLDSIZE = 1000
 BLACK = (0, 0, 0)
 OFFWHITE = (200, 200, 220)
@@ -97,38 +106,41 @@ if __name__ == '__main__':
     # Fill the background with white.
     screen.fill(OFFWHITE)
 
-    # The topleft, dim of every rectangle
-    topleft_dim = []  # [[(1, 2), (3, 4)]], for example
+    # [Rectangle(topleft, width, height)... ]
+    rects = []
 
-    # The boundary points of every rectangle
-    # (for sonar)
-    bound_pts_groups = []
+    # The boundary points of every rectangle, without overlap -> one dimensional array
+    # (for sonar).
+    wall_pts = []
 
     # The points unnocupied be rectangles
-    # (for rover spawn locations)
-    spawn_pts = []
+    # (for rover spawn locations).
+    spawn_pts = []  # TODO
 
-    pixel_array = pygame.PixelArray(screen)
-
+    # Creating the obstacles.
     for i in range(OBSTACLE_COUNT):
-        topleft = (random.randint(0, MAX_COOR), random.randint(0, MAX_COOR))
-        dim = (random.randint(MIN_BOUNDING, MAX_BOUNDING),
-               random.randint(MIN_BOUNDING, MAX_BOUNDING))
-        pygame.draw.rect(screen, BLACK, pygame.Rect(topleft, dim))
-        topleft_dim.append([topleft, dim])
-        bound_pts = get_bound_pts(topleft, dim)
+        # Choosing a random point as well as dimensions, overlaps are okay.
+        topleft = Point(random.randint(0, MAX_COOR),
+                        random.randint(0, MAX_COOR))
+        width = random.randint(MIN_BOUNDING, MAX_BOUNDING)
+        height = random.randint(MIN_BOUNDING, MAX_BOUNDING)
 
-        # Filter the bound points. If they are inside another topleft_dim, they are not acceptable.
-        for rect in topleft_dim:
-            bound_pts = filter(not_in_rect(rect), bound_pts)
-        bound_pts_groups.append(bound_pts)
+        # Drawing the black rectangle.
+        pygame.draw.rect(screen, BLACK, (topleft.x, topleft.y, width, height))
 
-        # blit these bound_pts as a test
-        for pt in bound_pts:
-            pygame.draw.line(screen, RED, pt, pt)
+        rects.append(Rectangle(topleft, width, height))
+        bound_pts = get_bound_pts(topleft, width, height)
 
-    # Recognize the boundaries of the rectangles (sonar), as well as the points contained within them (spawn locations)
-    # Get all points of the rectangle into a list
+        # Filter the bound points. If they are inside an obstacle, they are removed.
+        for rect in rects:
+            bound_pts = filter(not_in_rect(
+                rect.topleft, rect.width, rect.height), bound_pts)
+
+        wall_pts.extend(bound_pts)
+
+    # Draw the walls.
+    for point in wall_pts:
+        pygame.draw.line(screen, RED, point.raw(), point.raw())
 
     # Update the display
     pygame.display.update()
