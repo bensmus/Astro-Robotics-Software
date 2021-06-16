@@ -14,6 +14,7 @@ OBSTACLE CREATION TECHNIQUE
 '''
 
 # Version 1 simplifies this obstacle creation technique, to have all obstacles be rectangles.
+# TODO: Refactor into object oriented for rectangle class
 
 import pygame
 import random
@@ -88,11 +89,38 @@ def not_in_rect(topleft, width, height):
     return f
 
 
+def get_set_all_points(topleft, width, height):
+    """
+    Get all the points of the rectangle.
+    """
+    points = set()
+    for x in range(topleft.x, topleft.x + width + 1):
+        for y in range(topleft.y, topleft.y + height + 1):
+            points.add((x, y))
+    return points
+
+
+def reset_start_dest(spawn_pts, start, dest):
+
+    if start != None:
+        # Clearing previous
+        pygame.draw.circle(screen, BLUE, start, 2)
+        pygame.draw.circle(screen, BLUE, dest, 2)
+
+    start = random.choice(list(spawn_pts))
+    dest = random.choice(list(spawn_pts - {start}))
+    pygame.draw.circle(screen, PINK, start, 2)
+    pygame.draw.circle(screen, PINK, dest, 2)
+    return start, dest
+
+
 # Defining constants.
 WORLDSIZE = 1000
 BLACK = (0, 0, 0)
 OFFWHITE = (200, 200, 220)
-RED = (255, 0, 0)
+RED = (117, 11, 11)
+BLUE = (20, 50, 200)
+PINK = (255, 0, 230)
 
 MAX_BOUNDING = 100
 MIN_BOUNDING = 10
@@ -110,15 +138,18 @@ if __name__ == '__main__':
     screen.fill(OFFWHITE)
 
     # [Rectangle(topleft, width, height)... ]
-    rects = []
+    rects = list()
 
     # The boundary points of every rectangle, without overlap -> one dimensional array
     # (for sonar).
-    wall_pts = []
+    wall_pts = list()
 
-    # The points unnocupied be rectangles
+    # The points unnocupied by rectangles
     # (for rover spawn locations).
-    spawn_pts = []  # TODO
+    spawn_pts = set()
+    for x in range(WORLDSIZE):
+        for y in range(WORLDSIZE):
+            spawn_pts.add((x, y))
 
     # Creating the obstacles.
     for i in range(OBSTACLE_COUNT):
@@ -132,6 +163,7 @@ if __name__ == '__main__':
         pygame.draw.rect(screen, BLACK, (topleft.x, topleft.y, width, height))
 
         rects.append(Rectangle(topleft, width, height))
+        spawn_pts -= get_set_all_points(topleft, width, height)
         bound_pts = get_bound_pts(topleft, width, height)
 
         wall_pts.extend(bound_pts)
@@ -146,8 +178,12 @@ if __name__ == '__main__':
     for point in wall_pts:
         pygame.draw.line(screen, RED, point.raw(), point.raw())
 
-    # Update the display
-    pygame.display.update()
+    # Draw the spawn locations.
+    for point in spawn_pts:
+        pygame.draw.line(screen, BLUE, point, point)
+
+    # Choose and draw 2 random start and destination points.
+    start, dest = reset_start_dest(spawn_pts, None, None)
 
     # Print the first 20 obstacle points for fun
     for point in wall_pts[:20]:
@@ -158,8 +194,12 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    start, dest = reset_start_dest(spawn_pts, start, dest)
+
         x, y = pygame.mouse.get_pos()
         print(f'mouse coordinates x = {x:-3}, y = {y:-3}', end='\r')
-
+        pygame.display.update()
     # Done! Time to quit.
     pygame.quit()
