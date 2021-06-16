@@ -28,6 +28,9 @@ class Point:
     def raw(self):
         return (self.x, self.y)
 
+    def __str__(self):
+        return f"x = {self.x}, y = {self.y}"
+
 
 class Rectangle:
     def __init__(self, topleft, width, height):
@@ -131,12 +134,13 @@ if __name__ == '__main__':
         rects.append(Rectangle(topleft, width, height))
         bound_pts = get_bound_pts(topleft, width, height)
 
-        # Filter the bound points. If they are inside an obstacle, they are removed.
-        for rect in rects:
-            bound_pts = filter(not_in_rect(
-                rect.topleft, rect.width, rect.height), bound_pts)
-
         wall_pts.extend(bound_pts)
+
+    # DO THIS OUTSIDE THE LOOP, WHEN ALL RECTS DEFINED
+    # Filter the bound points. If they are inside an obstacle, they are removed.
+    for rect in rects:
+        wall_pts = list(filter(not_in_rect(
+            rect.topleft, rect.width, rect.height), wall_pts))
 
     # Draw the walls.
     for point in wall_pts:
@@ -144,6 +148,10 @@ if __name__ == '__main__':
 
     # Update the display
     pygame.display.update()
+
+    # Print the first 20 obstacle points for fun
+    for point in wall_pts[:20]:
+        print(point)
 
     running = True
     while running:
