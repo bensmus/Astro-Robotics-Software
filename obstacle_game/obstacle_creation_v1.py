@@ -158,6 +158,8 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        x, y = pygame.mouse.get_pos()
+        print(f'mouse coordinates x = {x:-3}, y = {y:-3}', end='\r')
 
     # Done! Time to quit.
     pygame.quit()
