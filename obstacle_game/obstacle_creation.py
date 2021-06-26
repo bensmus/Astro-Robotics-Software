@@ -2,6 +2,13 @@ import pygame
 import random
 pygame.init()
 
+# Defining colors
+black = (0, 0, 0)
+gray = (200, 200, 220)
+red = (117, 11, 11)
+blue = (20, 50, 200)
+pink = (255, 0, 230)
+
 
 class Point:
     def __init__(self, x, y):
@@ -30,9 +37,11 @@ class Rectangle:
         width = self.width
         height = self.height
 
-        topright = Point(topleft.x + width, topleft.y)
-        bottomleft = Point(topleft.x, topleft.y + height)
-        bottomright = Point(topleft.x + width, topleft.y + height)
+        # if width is 3, we have points 0, 1, 2
+        # each pixel takes up space
+        topright = Point(topleft.x + width - 1, topleft.y)
+        bottomleft = Point(topleft.x, topleft.y + height - 1)
+        bottomright = Point(topleft.x + width, topleft.y + height - 1)
 
         bound_pts = []
         bound_pts.extend((topleft, topright, bottomleft, bottomright))
@@ -54,13 +63,13 @@ class Rectangle:
 
         min_x = topleft.x
         min_y = topleft.y
-        max_x = min_x + width
-        max_y = min_y + height
+        max_x = min_x + width - 1
+        max_y = min_y + height - 1
         if point.y > min_y and point.y < max_y and point.x > min_x and point.x < max_x:
             return True
         return False
 
-    def get_set_all_points(self):
+    def get_all_points(self):
         """
         Get all the points of the rectangle.
         """
@@ -69,8 +78,8 @@ class Rectangle:
         height = self.height
 
         points = set()
-        for x in range(topleft.x, topleft.x + width + 1):
-            for y in range(topleft.y, topleft.y + height + 1):
+        for x in range(topleft.x, topleft.x + width):
+            for y in range(topleft.y, topleft.y + height):
                 points.add((x, y))
         return points
 
@@ -94,39 +103,33 @@ def reset_start_dest(spawn_pts, start, dest):
 
     if start != None:
         # Clearing previous
-        pygame.draw.circle(screen, BLUE, start, 2)
-        pygame.draw.circle(screen, BLUE, dest, 2)
+        pygame.draw.circle(screen, blue, start, 2)
+        pygame.draw.circle(screen, blue, dest, 2)
 
     start = random.choice(list(spawn_pts))
     dest = random.choice(list(spawn_pts - {start}))
-    pygame.draw.circle(screen, PINK, start, 2)
-    pygame.draw.circle(screen, PINK, dest, 2)
+    pygame.draw.circle(screen, pink, start, 2)
+    pygame.draw.circle(screen, pink, dest, 2)
     return start, dest
 
 
-# Defining constants.
-WORLDSIZE = 1000
-BLACK = (0, 0, 0)
-OFFWHITE = (200, 200, 220)
-RED = (117, 11, 11)
-BLUE = (20, 50, 200)
-PINK = (255, 0, 230)
+def setup(worldsize=1000, min_obstacle=50, max_obstacle=200, obstacle_count=30):
+    """
+    Set up the rover start and end points, and the obstacles.
+    Returns:
+    - screen: pygame display
+    - wall_pts: list of Points
+    - spawn_pts: set of Points
+    """
 
-MAX_BOUNDING = 100
-MIN_BOUNDING = 10
-# max top or left for a bounding rectangle
-MAX_COOR = WORLDSIZE - MAX_BOUNDING
-OBSTACLE_COUNT = 50
+    # Set up the drawing window.
+    screen = pygame.display.set_mode([worldsize, worldsize])
 
-# Set up the drawing window.
-screen = pygame.display.set_mode([WORLDSIZE, WORLDSIZE])
+    # worldsize - 1 is max_coor in general
+    max_topleft = (worldsize - 1) - max_obstacle
 
-
-if __name__ == '__main__':
-
-    # TODO: The only thing that we really need is wall_pts, make a function that gives wall_pts.
-    # Fill the background with white.
-    screen.fill(OFFWHITE)
+    # Fill the background
+    screen.fill(gray)
 
     # [Rectangle(topleft, width, height)... ]
     rects = list()
@@ -135,29 +138,21 @@ if __name__ == '__main__':
     # (for sonar).
     wall_pts = list()
 
-    all_points = set()
-    for x in range(WORLDSIZE):
-        for y in range(WORLDSIZE):
-            all_points.add((x, y))
-
-    # The points unnocupied by rectangles
-    # (for rover spawn locations).
-    spawn_pts = all_points  # As obstacles get created, pts will be removed
+    # As obstacles get created, pts will be removed from spawn possibilities
+    spawn_pts = Rectangle(Point(0, 0), worldsize, worldsize).get_all_points()
 
     # Creating the obstacles.
-    for i in range(OBSTACLE_COUNT):
+    for i in range(obstacle_count):
         # Choosing a random point as well as dimensions, overlaps are okay.
-        topleft = Point(random.randint(0, MAX_COOR),
-                        random.randint(0, MAX_COOR))
-        width = random.randint(MIN_BOUNDING, MAX_BOUNDING)
-        height = random.randint(MIN_BOUNDING, MAX_BOUNDING)
-
-        # Drawing the black rectangle.
-        pygame.draw.rect(screen, BLACK, (topleft.x, topleft.y, width, height))
+        topleft = Point(random.randint(0, max_topleft),
+                        random.randint(0, max_topleft))
+        width = random.randint(min_obstacle, max_obstacle)
+        height = random.randint(min_obstacle, max_obstacle)
+        pygame.draw.rect(screen, black, (topleft.x, topleft.y, width, height))
 
         rect = Rectangle(topleft, width, height)
         rects.append(rect)
-        spawn_pts -= rect.get_set_all_points()
+        spawn_pts -= rect.get_all_points()
         bound_pts = rect.get_bound_pts()
 
         wall_pts.extend(bound_pts)
@@ -170,18 +165,19 @@ if __name__ == '__main__':
 
     # Draw the walls.
     for point in wall_pts:
-        pygame.draw.line(screen, RED, point.raw(), point.raw())
+        pygame.draw.line(screen, red, point.raw(), point.raw())
 
     # Draw the spawn locations.
     for point in spawn_pts:
-        pygame.draw.line(screen, BLUE, point, point)
+        pygame.draw.line(screen, blue, point, point)
 
-    # Choose and draw 2 random start and destination points.
+    return screen, wall_pts, spawn_pts
+
+
+if __name__ == '__main__':
+
+    screen, wall_pts, spawn_pts = setup()
     start, dest = reset_start_dest(spawn_pts, None, None)
-
-    # Print the first 20 obstacle points for fun
-    for point in wall_pts[:20]:
-        print(point)
 
     running = True
     while running:
