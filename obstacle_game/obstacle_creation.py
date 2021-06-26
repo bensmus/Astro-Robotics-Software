@@ -43,23 +43,22 @@ class Rectangle:
 
         return bound_pts
 
-    def get_not_in_func(self):
+    def contains(self, point):
         """
-        Return a function that takes in a point, and checks if its contained within a rectangle.
+        Check if point is contained within a rectangle.
+        Edge points are not contained (> vs >=).
         """
         topleft = self.topleft
         width = self.width
         height = self.height
 
-        def f(point):
-            min_x = topleft.x
-            min_y = topleft.y
-            max_x = min_x + width
-            max_y = min_y + height
-            if point.y > min_y and point.y < max_y and point.x > min_x and point.x < max_x:
-                return False
+        min_x = topleft.x
+        min_y = topleft.y
+        max_x = min_x + width
+        max_y = min_y + height
+        if point.y > min_y and point.y < max_y and point.x > min_x and point.x < max_x:
             return True
-        return f
+        return False
 
     def get_set_all_points(self):
         """
@@ -125,6 +124,7 @@ screen = pygame.display.set_mode([WORLDSIZE, WORLDSIZE])
 
 if __name__ == '__main__':
 
+    # TODO: The only thing that we really need is wall_pts, make a function that gives wall_pts.
     # Fill the background with white.
     screen.fill(OFFWHITE)
 
@@ -135,12 +135,14 @@ if __name__ == '__main__':
     # (for sonar).
     wall_pts = list()
 
-    # The points unnocupied by rectangles
-    # (for rover spawn locations).
-    spawn_pts = set()
+    all_points = set()
     for x in range(WORLDSIZE):
         for y in range(WORLDSIZE):
-            spawn_pts.add((x, y))
+            all_points.add((x, y))
+
+    # The points unnocupied by rectangles
+    # (for rover spawn locations).
+    spawn_pts = all_points  # As obstacles get created, pts will be removed
 
     # Creating the obstacles.
     for i in range(OBSTACLE_COUNT):
@@ -161,9 +163,10 @@ if __name__ == '__main__':
         wall_pts.extend(bound_pts)
 
     # DO THIS OUTSIDE THE LOOP, WHEN ALL RECTS DEFINED
-    # Filter the bound points. If they are inside an obstacle, they are removed.
+    # Filter the bound points. If they are inside (not on the edge of) an obstacle, they are removed.
     for rect in rects:
-        wall_pts = list(filter(rect.get_not_in_func(), wall_pts))
+        wall_pts = list(
+            filter(lambda point: not rect.contains(point), wall_pts))
 
     # Draw the walls.
     for point in wall_pts:
