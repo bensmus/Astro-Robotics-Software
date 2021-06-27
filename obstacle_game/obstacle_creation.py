@@ -7,20 +7,11 @@ BLACK = (0, 0, 0)
 GRAY = (200, 200, 220)
 RED = (117, 11, 11)
 BLUE = (20, 50, 200)
-PINK = (255, 0, 230)
+PINK = 139,69,19
 
-SCREEN = pygame.display.set_mode((1000, 1000))
-
-# TODO: represent each worldpixel larger so we can see if we are doing everything properly
-# We have two coordinate systems
-
-
-def draw_worldpixels(screen, color, points, worldsize=200, screensize=1000):
-    scalar = screensize / worldsize
-    for point in points:
-        scaled_point = point.scale(scalar)
-        pygame.draw.rect(screen, color, (scaled_point.x,
-                         scaled_point.y, scalar, scalar))
+WORLDSIZE = 200
+SCREENSIZE = 600  # should be a multiple of WORLDSIZE
+SCREEN = pygame.display.set_mode((SCREENSIZE, SCREENSIZE))
 
 
 class Point:
@@ -33,6 +24,14 @@ class Point:
 
     def scale(self, scalar):
         return Point(self.x * scalar, self.y * scalar)
+
+    def __eq__(self, other):
+        if isinstance(other, Point):
+            return self.x == other.x and self.y == other.y
+        return False
+
+    def __hash__(self):
+        return hash(self.raw())
 
     def __str__(self):
         return f"x = {self.x}, y = {self.y}"
@@ -96,9 +95,19 @@ class Rectangle:
         points = set()
         for x in range(topleft.x, topleft.x + width):
             for y in range(topleft.y, topleft.y + height):
-                points.add((x, y))
+                points.add(Point(x, y))
         return points
 
+
+def draw_worldpixels(color, points):
+    """
+    Represent each worldpixel larger so we can see if we are doing everything properly
+    """
+    scalar = SCREENSIZE / WORLDSIZE
+    for point in points:
+        scaled_point = point.scale(scalar)
+        pygame.draw.rect(SCREEN, color, (scaled_point.x,
+                         scaled_point.y, scalar, scalar))
 
 def get_line_pts(point_a, point_b, horiz):
     """
@@ -115,21 +124,19 @@ def get_line_pts(point_a, point_b, horiz):
     return pts
 
 
-def reset_start_dest(spawn_pts, start, dest):
+def reset_start_dest(spawn_pts, start, end):
 
     if start != None:
         # Clearing previous
-        pygame.draw.circle(SCREEN, BLUE, start, 2)
-        pygame.draw.circle(SCREEN, BLUE, dest, 2)
+        draw_worldpixels(GRAY, [start, end])
 
     start = random.choice(list(spawn_pts))
-    dest = random.choice(list(spawn_pts - {start}))
-    pygame.draw.circle(SCREEN, PINK, start, 2)
-    pygame.draw.circle(SCREEN, PINK, dest, 2)
-    return start, dest
+    end = random.choice(list(spawn_pts - {start}))
+    draw_worldpixels(PINK, [start, end])
+    return start, end
 
 
-def setup(worldsize=200, min_obstacle=20, max_obstacle=50, obstacle_count=10):
+def setup(min_obstacle=20, max_obstacle=50, obstacle_count=10):
     """
     Set up the rover start and end points, and the obstacles.
     Returns:
@@ -137,8 +144,8 @@ def setup(worldsize=200, min_obstacle=20, max_obstacle=50, obstacle_count=10):
     - spawn_pts: set of Points
     """
 
-    # worldsize - 1 is max_coor in general
-    max_topleft = (worldsize - 1) - max_obstacle
+    # WORLDSIZE - 1 is max_coor in general
+    max_topleft = (WORLDSIZE - 1) - max_obstacle
 
     # [Rectangle(topleft, width, height)... ]
     rects = list()
@@ -148,7 +155,7 @@ def setup(worldsize=200, min_obstacle=20, max_obstacle=50, obstacle_count=10):
     wall_pts = list()
 
     # As obstacles get created, pts will be removed from spawn possibilities
-    spawn_pts = Rectangle(Point(0, 0), worldsize, worldsize).get_all_points()
+    spawn_pts = Rectangle(Point(0, 0), WORLDSIZE, WORLDSIZE).get_all_points()
 
     # Creating the obstacles.
     for i in range(obstacle_count):
@@ -180,7 +187,7 @@ if __name__ == '__main__':
     start, dest = reset_start_dest(spawn_pts, None, None)
 
     SCREEN.fill(GRAY)
-    draw_worldpixels(SCREEN, BLACK, wall_pts)
+    draw_worldpixels(BLACK, wall_pts)
 
     running = True
     while running:
