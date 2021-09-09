@@ -1,8 +1,8 @@
-# Astro Robotics Software
+# Wayfinding
 
 *Feel free to modify this file.*
 
-Welcome to everything software related at Astro Robotics!
+Welcome to wayfinding at Astro Robotics!
 
 ## Goals
 - Currently working towards wayfinding, which requires a drivetrain and an ultrasonic sensor
