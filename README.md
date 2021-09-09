@@ -7,7 +7,7 @@ Welcome to wayfinding at Astro Robotics!
 ## Goals
 The rover must go from point A to B, along rough terrain. The rovers/teams ability to pick the best path, and handle obstacles is important.
 
-## Firmware tasks
+## Prerequisites 
 - Writing code for non-autonomous motors control
     - Functions for driving forward, turning, etc. 
 - Interfacing with game controller:
@@ -21,7 +21,7 @@ The rover must go from point A to B, along rough terrain. The rovers/teams abili
     - Have some sort of UI for selecting what sort of data you want to display.
         - Buttons? Dials?
 
-## Wayfinding tasks
+## Wayfinding consists of
 - Obstacle detection with ultrasonic sensor.
 - Creating a live map of obstacles and planning a route around them. <-- pure CS, no roadblocks
     - http://www.cs.columbia.edu/~allen/F17/NOTES/lozanogrown.pdf
