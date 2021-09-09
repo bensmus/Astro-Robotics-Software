@@ -5,9 +5,7 @@
 Welcome to wayfinding at Astro Robotics!
 
 ## Goals
-- Currently working towards wayfinding, which requires a drivetrain and an ultrasonic sensor
-> Wayfinding: The rover must go from point A to B, along rough terrain. The rovers/teams ability to pick the best path, and handle obstacles is important.
-- Wayfinding does not include picking up any objects, everything is an obstacle for now. 
+The rover must go from point A to B, along rough terrain. The rovers/teams ability to pick the best path, and handle obstacles is important.
 
 ## Firmware tasks
 - Writing code for non-autonomous motors control
