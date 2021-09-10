@@ -5,9 +5,10 @@ pygame.init()
 # Defining colors
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 220)
-RED = (117, 11, 11)
+RED = (255, 0, 0)
+GREEN = (30, 200, 30)
 BLUE = (20, 50, 200)
-PINK = 139,69,19
+BROWN = 139,69,19
 
 WORLDSIZE = 100
 SCREENSIZE = 600  # should be a multiple of WORLDSIZE
@@ -202,20 +203,26 @@ def draw_start_dest(spawn_pts):
     print("entering draw start dest")
     points_collected = []
     
+    color = BROWN
     while len(points_collected) < 2:    
         x, y = pygame.mouse.get_pos()
         screenpoint = Point(x, y, False)
         worldpoint = screenpoint.getWorldpoint()
+        
         
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if worldpoint in spawn_pts:
                     print("Mouse was clicked")
                     points_collected.append(worldpoint)
-                    draw_worldpixels(PINK, [worldpoint])
+                    draw_worldpixels(color, [worldpoint])
+                    color = GREEN
                     pygame.display.update()
     print("exiting draw start dest")
     return points_collected
+
+def wayfind(start, dest, wall_pts, fps):
+    ...
 
 if __name__ == '__main__':
 
@@ -237,7 +244,11 @@ if __name__ == '__main__':
                     pygame.display.update()
                     start, dest = draw_start_dest(spawn_pts)
 
+                    # WAYFINDING ALGORITHM
+                    wayfind(start, dest, wall_pts, fps=1)
+
         pygame.display.update()
 
     # Done! Time to quit.
     pygame.quit()
+
