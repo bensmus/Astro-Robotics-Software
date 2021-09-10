@@ -11,26 +11,30 @@ PINK = 139,69,19
 
 WORLDSIZE = 100
 SCREENSIZE = 600  # should be a multiple of WORLDSIZE
+
 SCREEN = pygame.display.set_mode((SCREENSIZE, SCREENSIZE))
 
 
 class Point:
     """
-    Point with natural number coordinates
+    Point with natural number coordinates,
+    either a point in the world, or on the screen (scaled up world).
     """
-    def __init__(self, x, y):
+    def __init__(self, x, y, worldpoint=True):
         self.x = x
         self.y = y
+        self.worldpoint = worldpoint  # boolean value
 
     def raw(self):
         return (self.x, self.y)
 
-    def scale(self, scalar):
-        return Point(round(self.x * scalar), round(self.y * scalar))
+    def scale(self, scalar):  
+        # scaling changes worldpoint->screenpoint or screenpoint->worldpoint
+        return Point(round(self.x * scalar), round(self.y * scalar), not self.worldpoint)
 
     def __eq__(self, other):
         if isinstance(other, Point):
-            return self.x == other.x and self.y == other.y
+            return self.x == other.x and self.y == other.y and self.worldpoint == other.worldpoint
         return False
 
     def __hash__(self):
@@ -38,7 +42,25 @@ class Point:
 
     def __str__(self):
         return f"x = {self.x}, y = {self.y}"
-
+    
+    def getScreenpoint(self):
+        if self.worldpoint:
+            return self.scale(SCREENSIZE / WORLDSIZE)
+        else:
+            raise RuntimeError("Point is already screenpoint")
+    
+    def getWorldpoint(self):
+        if not self.worldpoint:
+            return self.scale(WORLDSIZE / SCREENSIZE)
+        else:
+            raise RuntimeError("Point is already worldpoint")
+    
+    def draw(self):
+        if self.worldpoint:
+            raise RuntimeError("Cannot draw worldpoint")
+        else:
+            scalar = SCREENSIZE / WORLDSIZE
+            pygame.draw.rect(SCREEN, BLACK, (self.x, self.y, scalar, scalar))
 
 class Rectangle:
     """
@@ -108,15 +130,13 @@ class Rectangle:
         return points
 
 
-def draw_worldpixels(color, points):
+def draw_worldpixels(color, worldpoints):
     """
     Represent each worldpixel larger so we can see if we are doing everything properly
     """
-    scalar = SCREENSIZE / WORLDSIZE
-    for point in points:
-        scaled_point = point.scale(scalar)
-        pygame.draw.rect(SCREEN, color, (scaled_point.x,
-                         scaled_point.y, scalar, scalar))
+    for point in worldpoints:
+        screenpoint = point.getScreenpoint()
+        screenpoint.draw()
 
 def get_line_pts(point_a, point_b, horiz):
     """
@@ -184,15 +204,15 @@ def draw_start_dest(spawn_pts):
     
     while len(points_collected) < 2:    
         x, y = pygame.mouse.get_pos()
-        screen_point = Point(x, y)
-        worldpixel_point = screen_point.scale(WORLDSIZE / SCREENSIZE)
+        screenpoint = Point(x, y, False)
+        worldpoint = screenpoint.getWorldpoint()
         
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if worldpixel_point in spawn_pts:
+                if worldpoint in spawn_pts:
                     print("Mouse was clicked")
-                    points_collected.append(worldpixel_point)
-                    draw_worldpixels(PINK, [worldpixel_point])
+                    points_collected.append(worldpoint)
+                    draw_worldpixels(PINK, [worldpoint])
                     pygame.display.update()
     print("exiting draw start dest")
     return points_collected
