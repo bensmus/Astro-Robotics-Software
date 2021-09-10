@@ -9,12 +9,15 @@ RED = (117, 11, 11)
 BLUE = (20, 50, 200)
 PINK = 139,69,19
 
-WORLDSIZE = 200
+WORLDSIZE = 100
 SCREENSIZE = 600  # should be a multiple of WORLDSIZE
 SCREEN = pygame.display.set_mode((SCREENSIZE, SCREENSIZE))
 
 
 class Point:
+    """
+    Point with natural number coordinates
+    """
     def __init__(self, x, y):
         self.x = x
         self.y = y
@@ -23,7 +26,7 @@ class Point:
         return (self.x, self.y)
 
     def scale(self, scalar):
-        return Point(self.x * scalar, self.y * scalar)
+        return Point(round(self.x * scalar), round(self.y * scalar))
 
     def __eq__(self, other):
         if isinstance(other, Point):
@@ -38,6 +41,12 @@ class Point:
 
 
 class Rectangle:
+    """
+    Allows for: 
+    - getting the outline points of the rectangle
+    - getting all the points of the rectangle
+    - checking if a point is contained within the rectangle
+    """
     def __init__(self, topleft, width, height):
         self.topleft = topleft
         self.width = width
@@ -86,7 +95,7 @@ class Rectangle:
 
     def get_all_points(self):
         """
-        Get all the points of the rectangle.
+        Returns set of all point objects.
         """
         topleft = self.topleft
         width = self.width
@@ -124,19 +133,7 @@ def get_line_pts(point_a, point_b, horiz):
     return pts
 
 
-def reset_start_dest(spawn_pts, start, end):
-
-    if start != None:
-        # Clearing previous
-        draw_worldpixels(GRAY, [start, end])
-
-    start = random.choice(list(spawn_pts))
-    end = random.choice(list(spawn_pts - {start}))
-    draw_worldpixels(PINK, [start, end])
-    return start, end
-
-
-def setup(min_obstacle=20, max_obstacle=50, obstacle_count=10):
+def setup(min_obstacle=5, max_obstacle=10, obstacle_count=30):
     """
     Set up the rover start and end points, and the obstacles.
     Returns:
@@ -180,14 +177,32 @@ def setup(min_obstacle=20, max_obstacle=50, obstacle_count=10):
 
     return wall_pts, spawn_pts
 
+# ! Develop better way of working with worldpixels / screenpixels
+def draw_start_dest(spawn_pts):
+    print("entering draw start dest")
+    points_collected = []
+    
+    while len(points_collected) < 2:    
+        x, y = pygame.mouse.get_pos()
+        screen_point = Point(x, y)
+        worldpixel_point = screen_point.scale(WORLDSIZE / SCREENSIZE)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if worldpixel_point in spawn_pts:
+                    print("Mouse was clicked")
+                    points_collected.append(worldpixel_point)
+                    draw_worldpixels(PINK, [worldpixel_point])
+                    pygame.display.update()
+    print("exiting draw start dest")
+    return points_collected
 
 if __name__ == '__main__':
 
     wall_pts, spawn_pts = setup()
-    start, dest = reset_start_dest(spawn_pts, None, None)
-
-    SCREEN.fill(GRAY)
+    SCREEN.fill(GRAY)  # reset everything
     draw_worldpixels(BLACK, wall_pts)
+    pygame.display.update()
 
     running = True
     while running:
@@ -196,10 +211,12 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    start, dest = reset_start_dest(spawn_pts, start, dest)
+                    print("R was pressed")
+                    SCREEN.fill(GRAY)  # reset everything
+                    draw_worldpixels(BLACK, wall_pts)
+                    pygame.display.update()
+                    start, dest = draw_start_dest(spawn_pts)
 
-        x, y = pygame.mouse.get_pos()
-        print(f'mouse coordinates x = {x:-3}, y = {y:-3}', end='\r')
         pygame.display.update()
 
     # Done! Time to quit.
