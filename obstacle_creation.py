@@ -55,12 +55,12 @@ class Point:
         else:
             raise RuntimeError("Point is already worldpoint")
     
-    def draw(self):
+    def draw(self, color):
         if self.worldpoint:
             raise RuntimeError("Cannot draw worldpoint")
         else:
             scalar = SCREENSIZE / WORLDSIZE
-            pygame.draw.rect(SCREEN, BLACK, (self.x, self.y, scalar, scalar))
+            pygame.draw.rect(SCREEN, color, (self.x, self.y, scalar, scalar))
 
 class Rectangle:
     """
@@ -136,7 +136,7 @@ def draw_worldpixels(color, worldpoints):
     """
     for point in worldpoints:
         screenpoint = point.getScreenpoint()
-        screenpoint.draw()
+        screenpoint.draw(color)
 
 def get_line_pts(point_a, point_b, horiz):
     """
