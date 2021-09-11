@@ -2,6 +2,9 @@ import pygame
 import random
 pygame.init()
 
+# Defining simulation speed
+FPS = 1
+
 # Defining colors
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 220)
@@ -62,6 +65,7 @@ class Point:
         else:
             scalar = SCREENSIZE / WORLDSIZE
             pygame.draw.rect(SCREEN, color, (self.x, self.y, scalar, scalar))
+
 
 class Rectangle:
     """
@@ -139,6 +143,7 @@ def draw_worldpixels(color, worldpoints):
         screenpoint = point.getScreenpoint()
         screenpoint.draw(color)
 
+
 def get_line_pts(point_a, point_b, horiz):
     """
     Interpolate, do not include a or b
@@ -198,9 +203,8 @@ def setup(min_obstacle=5, max_obstacle=10, obstacle_count=30):
 
     return wall_pts, spawn_pts
 
-# ! Develop better way of working with worldpixels / screenpixels
+
 def draw_start_dest(spawn_pts):
-    print("entering draw start dest")
     points_collected = []
     
     color = BROWN
@@ -213,15 +217,21 @@ def draw_start_dest(spawn_pts):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if worldpoint in spawn_pts:
-                    print("Mouse was clicked")
                     points_collected.append(worldpoint)
                     draw_worldpixels(color, [worldpoint])
                     color = GREEN
                     pygame.display.update()
-    print("exiting draw start dest")
     return points_collected
 
+
 def wayfind(start, dest, wall_pts, fps):
+    """
+    The algorithm in the other file gets:
+    - new list of obstacles (when the rover moves we get new obstacles),
+    - rover position, start, dest
+
+    That algorithm is called every frame, and outputs future rover position.
+    """
     ...
 
 if __name__ == '__main__':
@@ -238,14 +248,13 @@ if __name__ == '__main__':
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
-                    print("R was pressed")
                     SCREEN.fill(GRAY)  # reset everything
                     draw_worldpixels(BLACK, wall_pts)
                     pygame.display.update()
                     start, dest = draw_start_dest(spawn_pts)
 
                     # WAYFINDING ALGORITHM
-                    wayfind(start, dest, wall_pts, fps=1)
+                    wayfind(start, dest, wall_pts, FPS)
 
         pygame.display.update()
 
