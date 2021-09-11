@@ -207,26 +207,6 @@ def setup(min_obstacle=5, max_obstacle=10, obstacle_count=30):
     return wall_pts, spawn_pts
 
 
-def draw_start_dest(spawn_pts):
-    points_collected = []
-    
-    color = BROWN
-    while len(points_collected) < 2:    
-        x, y = pygame.mouse.get_pos()
-        screenpoint = Point(x, y, False)
-        worldpoint = screenpoint.getWorldpoint()
-        
-        
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if worldpoint in spawn_pts:
-                    points_collected.append(worldpoint)
-                    draw_worldpixels(color, [worldpoint])
-                    color = GREEN
-                    pygame.display.update()
-    return points_collected
-
-
 def wayfind(start, dest, wall_pts, fps):
     """
     The algorithm in the rover class - rover.move() - requires:
@@ -256,17 +236,41 @@ if __name__ == '__main__':
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                
+                # Getting worldpoint from mouse pos
+                x, y = pygame.mouse.get_pos()
+                screenpoint = Point(x, y, False)
+                worldpoint = screenpoint.getWorldpoint()
+                
+                if worldpoint in spawn_pts:
+                    start = worldpoint
                     SCREEN.fill(GRAY)  # reset everything
+
                     draw_worldpixels(BLACK, wall_pts)
+                    draw_worldpixels(BROWN, [worldpoint])
                     pygame.display.update()
-                    start, dest = draw_start_dest(spawn_pts)
+
+                    # wait for second mouse click
+                    waiting = True 
+                    while waiting:
+                        for event in pygame.event.get():
+                            if event.type == pygame.MOUSEBUTTONDOWN:
+                                
+                                # Getting worldpoint from mouse pos
+                                x, y = pygame.mouse.get_pos()
+                                screenpoint = Point(x, y, False)
+                                worldpoint = screenpoint.getWorldpoint()
+                                
+                                if worldpoint in spawn_pts:
+                                    dest = worldpoint
+                                    waiting = False 
+                    
+                    draw_worldpixels(GREEN, [worldpoint])
+                    pygame.display.update()
 
                     # WAYFINDING ALGORITHM
                     wayfind(start, dest, wall_pts, FPS)
-
-        pygame.display.update()
 
     # Done! Time to quit.
     pygame.quit()
