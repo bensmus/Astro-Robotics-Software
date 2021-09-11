@@ -1,6 +1,9 @@
 import pygame
 import random
+from rover import Rover
 pygame.init()
+
+clock = pygame.time.Clock()
 
 # Defining simulation speed
 FPS = 1
@@ -226,13 +229,20 @@ def draw_start_dest(spawn_pts):
 
 def wayfind(start, dest, wall_pts, fps):
     """
-    The algorithm in the other file gets:
-    - new list of obstacles (when the rover moves we get new obstacles),
+    The algorithm in the rover class - rover.move() - requires:
+    - list of obstacles (when the rover moves we get new obstacles),
     - rover position, start, dest
 
     That algorithm is called every frame, and outputs future rover position.
     """
-    ...
+    rover = Rover(start, dest)
+    while rover.pos != dest:
+        rover.scan(wall_pts)
+        rover.move()
+        draw_worldpixels(BLUE, [rover.pos])
+        pygame.display.update()
+        clock.tick(1)
+    
 
 if __name__ == '__main__':
 
