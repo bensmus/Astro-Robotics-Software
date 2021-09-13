@@ -47,23 +47,23 @@ def getCircle(radius, origin) -> MutableSet[Point]:
     return points
 
 
-def in_angle_range(origin, point, angle_range) -> bool: 
+def inAngleRange(origin, point, angle_range) -> bool: 
     """Determine if point is in range of certain angles"""
     angle = atan2(origin.y - point.y, origin.x - point.x)  # atan2 returns angles between -pi and pi radians
     return angle_range[0] <= angle and angle <= angle_range[1]
 
 
-def filter_from_angle_ranges(origin, points, angle_ranges) -> None:
+def filterFromAngleRanges(origin, points, angle_ranges) -> None:
     """Remove points that are in angle ranges"""
     for i, point in enumerate(points):
         # make sure that the point isn't in any of the angle_ranges
         for angle_range in angle_ranges:
-            if in_angle_range(origin, point, angle_range):
+            if inAngleRange(origin, point, angle_range):
                 points.pop(i)
                 break
     
 
-def get_angle_ranges(points):
+def getAngleRanges(points):
     ...
 
 
@@ -80,11 +80,11 @@ class Rover:
         for radius in range(1, self.scanradius):
             circle = getCircle(radius, self.pos)
             # Don't scan obstacles that you cannot see
-            filter_from_angle_ranges(self.pos, circle, angle_ranges)
+            filterFromAngleRanges(self.pos, circle, angle_ranges)
             just_scanned_pts = circle.intersection(wall_pts)
             self.scanned_pts.append(just_scanned_pts)
             # ! Implement get_angle_ranges
-            angle_ranges.append(get_angle_ranges(just_scanned_pts))
+            angle_ranges.append(getAngleRanges(just_scanned_pts))
             
         
     

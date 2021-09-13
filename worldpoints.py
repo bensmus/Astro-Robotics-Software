@@ -40,7 +40,7 @@ class Point:
         else:
             raise RuntimeError("Point is already screenpoint")
     
-    def getWorldpoint(self):
+    def getWorldPt(self):
         if not self.worldpoint:
             return self.scale(WORLDSIZE / SCREENSIZE)
         else:
@@ -66,7 +66,7 @@ class Rectangle:
         self.width = width
         self.height = height
 
-    def get_bound_pts(self):
+    def getBoundPts(self):
         """
         Get the points on the edge of the rectangle.
         """
@@ -83,10 +83,10 @@ class Rectangle:
 
         bound_pts = []
         bound_pts.extend((topleft, topright, bottomleft, bottomright))
-        bound_pts.extend(get_line_pts(topleft, topright, True))
-        bound_pts.extend(get_line_pts(topright, bottomright, False))
-        bound_pts.extend(get_line_pts(bottomleft, bottomright, True))
-        bound_pts.extend(get_line_pts(topleft, bottomleft, False))
+        bound_pts.extend(getLinePts(topleft, topright, True))
+        bound_pts.extend(getLinePts(topright, bottomright, False))
+        bound_pts.extend(getLinePts(bottomleft, bottomright, True))
+        bound_pts.extend(getLinePts(topleft, bottomleft, False))
 
         return bound_pts
 
@@ -107,7 +107,7 @@ class Rectangle:
             return True
         return False
 
-    def get_all_points(self):
+    def getAllPts(self):
         """
         Returns set of all point objects.
         """
@@ -122,7 +122,7 @@ class Rectangle:
         return points
 
 
-def draw_worldpoints(color, worldpoints):
+def drawWorldPts(color, worldpoints):
     """
     Represent each worldpixel larger so we can see if we are doing everything properly
     """
@@ -131,7 +131,7 @@ def draw_worldpoints(color, worldpoints):
         screenpoint.draw(color)
 
 
-def get_line_pts(point_a, point_b, horiz):
+def getLinePts(point_a, point_b, horiz):
     """
     Interpolate, do not include a or b
     b needs to be more positive than a for this to work.
