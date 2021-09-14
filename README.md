@@ -5,8 +5,12 @@ Welcome to wayfinding at Astro Robotics!
 - simulator.py is a simulator that creates obstacles and allows you to test a rover algorithm specified in rover.py
 
 ## Current progress
-- Scanning works
-![](scan_demo.gif)
+- Basics work
+![](simple_finding.gif)
+    - The blue points are the points that the rover knows about  
+
+## Issues
+- Gets stuck in corners really often
 
 ## Goals
 The rover must go from point A to B, along rough terrain. The rovers/teams ability to pick the best path, and handle obstacles is important.
