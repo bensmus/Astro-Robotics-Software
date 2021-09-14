@@ -14,6 +14,7 @@ RED = (255, 0, 0)
 GREEN = (30, 200, 30)
 BLUE = (20, 50, 200)
 BROWN = 139,69,19
+VIOLET = 214, 138, 255
 
 
 def setup(min_obstacle=5, max_obstacle=10, obstacle_count=30):
@@ -73,7 +74,7 @@ def wayfind(start, dest, wall_pts):
     while rover.pos != dest:
         rover.scan(wall_pts)
         rover.move()
-        drawWorldPts(BLUE, [rover.pos])
+        drawWorldPts(VIOLET, [rover.pos])
         pygame.display.update()
         clock.tick(FPS)
     
