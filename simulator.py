@@ -5,7 +5,7 @@ from worldpoints import *
 clock = pygame.time.Clock()
 
 # Defining simulation speed
-FPS = 1
+FPS = 30
 
 # Defining colors
 BLACK = (0, 0, 0)
@@ -69,15 +69,21 @@ def wayfind(start, dest, wall_pts):
     - rover position, start, dest
 
     That algorithm is called every frame, and outputs future rover position.
+
+    Function returns True if destination reached, False if interrupted by user
     """
     rover = Rover(start, dest)
-    while rover.pos != dest:
+    while rover.pos.getRounded() != dest:
         rover.scan(wall_pts)
         rover.move()
         drawWorldPts(VIOLET, [rover.pos])
         pygame.display.update()
-        clock.tick(FPS)
     
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # user doesn't want to wayfind anymore
+                return False
+    return True
+
 
 if __name__ == '__main__':
 
@@ -97,9 +103,7 @@ if __name__ == '__main__':
                 screenpoint = Point(x, y, False)
                 # We have to round because all the obstacles have whole number coordinates (pixels)
                 worldpoint = screenpoint.getWorldPt().getRounded()  
-                
-                print(type(worldpoint))
-                print(type(spawn_pts))
+
                 if worldpoint in spawn_pts:
                     start = worldpoint
                     SCREEN.fill(GRAY)  # reset everything
@@ -126,7 +130,12 @@ if __name__ == '__main__':
                     pygame.display.update()
 
                     # WAYFINDING ALGORITHM
-                    wayfind(start, dest, wall_pts)
+                    success = wayfind(start, dest, wall_pts)
+                    if success:
+                        print("Destination found")
+                        running = True 
+                    else:
+                        running = False
 
     # Done! Time to quit.
     pygame.quit()

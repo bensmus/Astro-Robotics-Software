@@ -22,7 +22,7 @@ def getNetRepulsion(pos, scanned_pts):
     
     for pt in scanned_pts:
         distance = dist(pos.raw(), pt.raw())
-        repulsive_force = 1/distance**2
+        repulsive_force = 1/distance**4  # more bounce away from walls
         
         direction_vector = np.array([[pos.x - pt.x, pos.y - pt.y]])
         unit_vector = direction_vector / distance
@@ -31,6 +31,19 @@ def getNetRepulsion(pos, scanned_pts):
     
     net_repulsion = np.sum(repulsion_vectors, axis=0) 
     return net_repulsion
+
+
+def getNetAttraction(pos, dest):
+    direction_vector = np.array([dest.x - pos.x, dest.y - pos.y])
+    distance = np.linalg.norm(direction_vector)
+    attractive_force = distance
+    # Minimum attractive force of 100 based on readings
+    # Otherwise rover doesn't go to goal when it's close
+    if attractive_force < 100:
+        attractive_force = 200
+    unit_vector = direction_vector / distance 
+    attraction_vector = unit_vector * attractive_force
+    return attraction_vector
 
 
 class Rover:
@@ -64,8 +77,10 @@ class Rover:
 
         # Less dumb algo: flow field
         net_repulsion = getNetRepulsion(self.pos, self.scanned_pts)
-        unit_net_repulsion = net_repulsion / np.linalg.norm(net_repulsion)
-        print(unit_net_repulsion)
-        self.pos.x += unit_net_repulsion[0]
-        self.pos.y += unit_net_repulsion[1]
+        net_attraction = getNetAttraction(self.pos, self.dest)
+
+        net_movement = net_repulsion + net_attraction
+        unit_net_movement = net_movement / np.linalg.norm(net_movement)
+        self.pos.x += unit_net_movement[0]
+        self.pos.y += unit_net_movement[1]
         
