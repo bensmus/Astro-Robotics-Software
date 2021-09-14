@@ -72,6 +72,9 @@ def wayfind(start, dest, wall_pts):
     rover = Rover(start, dest)
     while rover.pos != dest:
         rover.scan(wall_pts)
+        # ? DEBUG
+        # Testing scan
+        breakpoint()
         rover.move()
         drawWorldPts(BLUE, [rover.pos])
         pygame.display.update()
@@ -91,12 +94,14 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                
                 # Getting worldpoint from mouse pos
                 x, y = pygame.mouse.get_pos()
                 screenpoint = Point(x, y, False)
-                worldpoint = screenpoint.getWorldPt()
+                # We have to round because all the obstacles have whole number coordinates (pixels)
+                worldpoint = screenpoint.getWorldPt().getRounded()  
                 
+                print(type(worldpoint))
+                print(type(spawn_pts))
                 if worldpoint in spawn_pts:
                     start = worldpoint
                     SCREEN.fill(GRAY)  # reset everything
@@ -108,13 +113,13 @@ if __name__ == '__main__':
                     # wait for second mouse click
                     waiting = True 
                     while waiting:
+                        print("waiting")
                         for event in pygame.event.get():
                             if event.type == pygame.MOUSEBUTTONDOWN:
-                                
                                 # Getting worldpoint from mouse pos
                                 x, y = pygame.mouse.get_pos()
                                 screenpoint = Point(x, y, False)
-                                worldpoint = screenpoint.getWorldPt()
+                                worldpoint = screenpoint.getWorldPt().getRounded()
                                 
                                 if worldpoint in spawn_pts:
                                     dest = worldpoint

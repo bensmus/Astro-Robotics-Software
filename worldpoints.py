@@ -21,7 +21,7 @@ class Point:
 
     def scale(self, scalar):  
         # scaling changes worldpoint->screenpoint or screenpoint->worldpoint
-        return Point(round(self.x * scalar), round(self.y * scalar), not self.worldpoint)
+        return Point(self.x * scalar, self.y * scalar, not self.worldpoint)
 
     def __eq__(self, other):
         if isinstance(other, Point):
@@ -51,7 +51,10 @@ class Point:
             raise RuntimeError("Cannot draw worldpoint")
         else:
             scalar = SCREENSIZE / WORLDSIZE
-            pygame.draw.rect(SCREEN, color, (self.x, self.y, scalar, scalar))
+            pygame.draw.rect(SCREEN, color, (round(self.x), round(self.y), scalar, scalar))
+    
+    def getRounded(self):
+        return Point(round(self.x), round(self.y))
 
 
 class Rectangle:

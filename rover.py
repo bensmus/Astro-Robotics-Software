@@ -1,7 +1,8 @@
-from worldpoints import Point
-from math import atan2
-from typing import MutableSet
-
+from worldpoints import Point, drawWorldPts
+from math import asin, atan2, dist, sqrt
+from typing import MutableSet, List
+import pygame
+from time import sleep
 
 def getCircle(radius, origin) -> MutableSet[Point]:
     """
@@ -53,18 +54,50 @@ def inAngleRange(origin, point, angle_range) -> bool:
     return angle_range[0] <= angle and angle <= angle_range[1]
 
 
-def filterFromAngleRanges(origin, points, angle_ranges) -> None:
+def filterFromAngleRanges(origin, points, angle_ranges) -> List[Point]:
     """Remove points that are in angle ranges"""
-    for i, point in enumerate(points):
+    points_list = list(points)
+    for i, point in enumerate(points_list):
         # make sure that the point isn't in any of the angle_ranges
         for angle_range in angle_ranges:
             if inAngleRange(origin, point, angle_range):
-                points.pop(i)
+                points_list.pop(i)
                 break
-    
+    return points_list
 
-def getAngleRanges(points):
-    ...
+
+def getAngleRange(origin, point):
+    """
+    Description:
+    Each point gets an angle range. 
+    Closer points take up a larger range of angles,
+    further points take up a smaller range of angles.
+
+    Implementation:
+    s = distance from the middle of each pixel
+    a = angle between the two pixels can then be calculated using atan2
+    b = asin( (sqrt(2)/2) / s )
+    minangle = a - b
+    maxangle = a + b
+    """
+    # !
+    widener = 2
+
+    origin_mp = Point(point.x - 0.5, point.y - 0.5)
+    point_mp = Point(origin.x - 0.5, origin.y - 0.5)
+    s = dist(origin_mp.raw(), point_mp.raw())
+    a = atan2(point_mp.y - origin_mp.y, point_mp.x - origin_mp.x)
+    b =  asin(sqrt(2)/2 / s)
+    minangle = a - b - widener
+    maxangle = a + b + widener
+    return minangle, maxangle
+
+    
+def getAngleRanges(origin, points):
+    angle_ranges = []
+    for point in points:
+        angle_ranges.append(getAngleRange(origin, point))
+    return angle_ranges
 
 
 class Rover:
@@ -72,7 +105,7 @@ class Rover:
         self.pos = start
         self.dest = dest
         self.scanned_pts = []
-        self.scanradius = 10
+        self.scanradius = 25
     
     def scan(self, wall_pts):
         """Grows scanned_pts"""
@@ -80,11 +113,16 @@ class Rover:
         for radius in range(1, self.scanradius):
             circle = getCircle(radius, self.pos)
             # Don't scan obstacles that you cannot see
-            filterFromAngleRanges(self.pos, circle, angle_ranges)
-            just_scanned_pts = circle.intersection(wall_pts)
-            self.scanned_pts.append(just_scanned_pts)
-            # ! Implement get_angle_ranges
-            angle_ranges.append(getAngleRanges(just_scanned_pts))
+            print(angle_ranges)
+            scan_wave = filterFromAngleRanges(self.pos, circle, angle_ranges)
+            drawWorldPts((0, 0, 255), scan_wave)
+            pygame.display.update()
+            sleep(1)
+            just_scanned_pts = set(scan_wave).intersection(wall_pts)
+            if just_scanned_pts != set():
+                angle_ranges.extend(getAngleRanges(self.pos, just_scanned_pts))
+                self.scanned_pts.append(just_scanned_pts)
+            
             
         
     
