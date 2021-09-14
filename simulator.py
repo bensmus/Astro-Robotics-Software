@@ -72,9 +72,6 @@ def wayfind(start, dest, wall_pts):
     rover = Rover(start, dest)
     while rover.pos != dest:
         rover.scan(wall_pts)
-        # ? DEBUG
-        # Testing scan
-        breakpoint()
         rover.move()
         drawWorldPts(BLUE, [rover.pos])
         pygame.display.update()
@@ -113,7 +110,6 @@ if __name__ == '__main__':
                     # wait for second mouse click
                     waiting = True 
                     while waiting:
-                        print("waiting")
                         for event in pygame.event.get():
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 # Getting worldpoint from mouse pos
